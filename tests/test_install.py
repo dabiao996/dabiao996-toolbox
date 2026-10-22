@@ -24,8 +24,10 @@ class InstallerTests(unittest.TestCase):
         self.archive = self.base / "source.tar.gz"
         with tarfile.open(self.archive, "w:gz") as package:
             for path in ROOT.rglob("*"):
-                if path.is_file() and "__pycache__" not in path.parts:
-                    package.add(path, arcname="dabiao996-pinned/" + path.relative_to(ROOT).as_posix())
+                relative = path.relative_to(ROOT)
+                if (path.is_file() and not any(part in (".git", "__pycache__") for part in relative.parts)
+                        and path.suffix != ".pyc" and path.name != ".DS_Store"):
+                    package.add(path, arcname="dabiao996-pinned/" + relative.as_posix())
         self.sha = hashlib.sha256(self.archive.read_bytes()).hexdigest()
 
     def call_install(self, checksum=None):
@@ -68,6 +70,18 @@ class InstallerTests(unittest.TestCase):
         with self.assertRaisesRegex(installer.InstallError, "危险路径"):
             self.call_install()
         self.assertFalse((self.base / "escape").exists())
+        self.assertFalse(self.prefix.exists())
+
+    def test_runtime_data_in_archive_is_rejected(self):
+        with tarfile.open(self.archive, "w:gz") as package:
+            for name in ("c", "VERSION", "toolbox.py", ".git/config"):
+                data = b"0.1.0\n" if name == "VERSION" else b"test\n"
+                item = tarfile.TarInfo(name)
+                item.size = len(data)
+                package.addfile(item, io.BytesIO(data))
+        self.sha = hashlib.sha256(self.archive.read_bytes()).hexdigest()
+        with self.assertRaisesRegex(installer.InstallError, "运行数据或不安全目录"):
+            self.call_install()
         self.assertFalse(self.prefix.exists())
 
     def test_platform_boundary_and_url_validation(self):

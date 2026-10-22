@@ -119,10 +119,25 @@ class ToolboxTests(unittest.TestCase):
         self.assertNotIn("LEAK", str(caught.exception))
         self.assertNotIn("LEAK", (self.state / "events.log").read_text())
 
-    def copy_project(self):
+    def copy_project(self, source=ROOT):
         target = self.base / "project"
-        shutil.copytree(ROOT, target, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".DS_Store"))
+        shutil.copytree(source, target, ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc", ".DS_Store"))
         return target
+
+    def test_update_rejects_git_checkout(self):
+        source = self.base / "checkout"
+        shutil.copytree(ROOT, source, ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc", ".DS_Store"))
+        (source / ".git").mkdir()
+        (source / ".git" / "config").write_text("[core]\n")
+        project = self.copy_project(source)
+        self.assertFalse((project / ".git").exists())
+        (project / ".git").mkdir()
+        self.config.mkdir()
+        (self.config / "update.json").write_text(json.dumps({"source": "file:///nonexistent/release.tar.gz", "version": "0.2.0", "sha256": "0" * 64}))
+        result = self.cli("update", root=project)
+        self.assertEqual(result.returncode, 6)
+        self.assertIn("源码仓库或链接目录不支持自动替换", result.stderr)
+        self.assertEqual((project / "VERSION").read_text().strip(), "0.1.0")
 
     def release(self, project, version="0.2.0"):
         release = self.base / "release"
