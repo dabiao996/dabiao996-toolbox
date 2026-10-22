@@ -18,7 +18,15 @@ cd dabiao996
 ./c update check
 ```
 
-## 一键安装准备
+## 一键安装
+
+在 Debian/Ubuntu amd64/arm64 服务器运行（需要 `curl`、`sha256sum`、Python 3.9+）：
+
+```sh
+bash <(curl -fsSL https://raw.githubusercontent.com/dabiao996/dabiao996-toolbox/main/get.sh)
+```
+
+入口 `get.sh` 固定 v0.1.0 的提交和两个 SHA256 值；它下载并校验安装器，再由安装器校验完整发布包。入口无法下载时不会安装，安装器或发布包校验失败时会报错。此命令从当前 `main` 获取短入口；若需固定入口本身，可把 URL 中的 `main` 替换为某次已核验的提交 SHA。
 
 `install.py` 是独立的发布包安装器，目标为 Debian/Ubuntu amd64/arm64。它要求固定版本、HTTPS（或测试用本地 file URL）发布包和完整 SHA256；下载后验证摘要、拒绝危险归档路径与链接、检查脚本语法，再安装源码并建立 `c` 命令。重复运行会识别相同版本，遇到已有其他 `c` 命令或异常目录会拒绝覆盖。应用数据、配置和日志始终在源码目录外。
 
