@@ -23,7 +23,7 @@ cd dabiao996
 在 Debian/Ubuntu amd64/arm64 服务器运行（需要 `curl`、`sha256sum`、Python 3.9+）：
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/dabiao996/dabiao996-toolbox/main/get.sh)
+bash <(curl -fsSL https://github.com/dabiao996/dabiao996-toolbox/raw/main/get.sh)
 ```
 
 入口 `get.sh` 固定 v0.1.0 的提交和两个 SHA256 值；它下载并校验安装器，再由安装器校验完整发布包。入口无法下载时不会安装，安装器或发布包校验失败时会报错。此命令从当前 `main` 获取短入口；若需固定入口本身，可把 URL 中的 `main` 替换为某次已核验的提交 SHA。
