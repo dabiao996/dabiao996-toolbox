@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "id": "sample-app",
+  "name": "安全示例应用（仅状态查询）",
+  "version": "0.1.0",
+  "category": "apps",
+  "entry": "module.py",
+  "actions": ["status"],
+  "os": ["debian", "ubuntu"],
+  "arch": ["amd64", "arm64"]
+}
